@@ -1,0 +1,54 @@
+name: Build Signed APK and AAB
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java Development Kit
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Set up Flutter Stable
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+
+    - name: Install Project Dependencies
+      run: flutter pub get
+
+    - name: Dynamically Create Key Properties from GitHub Secrets
+      run: |
+        echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
+        echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+        echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+        echo "storeFile=upload.jks" >> android/key.properties
+
+    - name: Build Production Signed APK
+      run: flutter build apk --release
+
+    - name: Build Production Signed App Bundle (AAB)
+      run: flutter build appbundle --release
+
+    - name: Upload Signed APK Artifact for Testing
+      uses: actions/upload-artifact@v4
+      with:
+        name: Number-Merge-Testing-APK
+        path: build/app/outputs/flutter-apk/app-release.apk
+
+    - name: Upload Signed AAB Artifact for Play Store
+      uses: actions/upload-artifact@v4
+      with:
+        name: Number-Merge-PlayStore-AAB
+        path: build/app/outputs/bundle/release/app-release.aab
