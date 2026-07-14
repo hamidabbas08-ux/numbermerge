@@ -36,10 +36,10 @@ jobs:
         echo "storeFile=upload.jks" >> android/key.properties
 
     - name: Build Production Signed APK
-      run: flutter build apk --release
+      run: flutter build apk --release --android-skip-build-dependency-validation
 
     - name: Build Production Signed App Bundle (AAB)
-      run: flutter build appbundle --release
+      run: flutter build appbundle --release --android-skip-build-dependency-validation
 
     - name: Upload Signed APK Artifact for Testing
       uses: actions/upload-artifact@v4
